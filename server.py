@@ -213,8 +213,24 @@ def handle_client(conn, addr):
                 conn.sendall(encrypted_response)
 
         # --- 6. Session Key Establishment (Req 2.3) ---
-        # TODO in Step 10
-        print("Login complete. (Session key exchange not yet implemented)")
+
+        print("Starting SESSION key exchange...")
+
+        # Generate server's NEW DH keys for the session
+        session_dh_private, session_dh_public_bytes = sec.dh_generate_keys()
+
+        # Send server's public session DH key
+        conn.sendall(session_dh_public_bytes)
+
+        # Receive client's public session DH key
+        client_session_dh_public_bytes = conn.recv(4096)
+        if not client_session_dh_public_bytes:
+            raise ConnectionError("Client disconnected during session key exchange.")
+
+        # Derive FINAL session key
+        session_shared_secret = sec.dh_derive_shared_secret(session_dh_private, client_session_dh_public_bytes)
+        session_key = sec.derive_key_from_dh_secret(session_shared_secret)
+        print("✅ Secure session key established.")
 
 
         # --- 7. Data Plane (Req 2.4) ---
