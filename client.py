@@ -144,9 +144,24 @@ def main():
                     print("Invalid command.")
 
             # --- 6. Session Key Establishment (Req 2.3) ---
-            # TODO in Step 10
-            print("Login complete. (Session key exchange not yet implemented)")
 
+            print("Starting SESSION key exchange...")
+
+            # Receive server's public session DH key
+            server_session_dh_public_bytes = s.recv(4096)
+            if not server_session_dh_public_bytes:
+                raise ConnectionError("Server disconnected during session key exchange.")
+
+            # Generate client's NEW DH keys for the session
+            session_dh_private, session_dh_public_bytes = sec.dh_generate_keys()
+
+            # Send client's public session DH key
+            s.sendall(session_dh_public_bytes)
+
+            # Derive FINAL session key
+            session_shared_secret = sec.dh_derive_shared_secret(session_dh_private, server_session_dh_public_bytes)
+            session_key = sec.derive_key_from_dh_secret(session_shared_secret)
+            print("✅ Secure session key established.")
 
             # --- 7. Data Plane (Req 2.4) ---
             # TODO in Step 11
