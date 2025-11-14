@@ -79,8 +79,17 @@ def verify_peer_cert(peer_cert, ca_cert, expected_cn):
 
 # --- 3. Diffie-Hellman (DH) Key Exchange (Req 2.2, 2.3) ---
 
-# Use standard DH parameters (Group 14) for simplicity
-DH_PARAMS = dh.generate_parameters(generator=2, key_size=2048, backend=default_backend())
+def load_dh_parameters():
+    """Loads the pre-generated DH parameters from a file."""
+    try:
+        with (CERTS_DIR / "dh_params.pem").open("rb") as f:
+            return serialization.load_pem_parameters(f.read(), default_backend())
+    except FileNotFoundError:
+        print("ERROR: dh_params.pem not found. Run 'python3 scripts/gen_dh_params.py' first.")
+        exit(1)
+
+# Load the parameters ONCE when the module is imported
+DH_PARAMS = load_dh_parameters()
 
 def dh_generate_keys():
     """Generates a new DH private/public key pair."""
