@@ -5,10 +5,15 @@ import json
 import traceback
 import mysql.connector
 import threading
+import datetime
+from pathlib import Path
 
 # Import our helper modules
 import security_utils as sec
 from config import DB_CONFIG
+from cryptography.hazmat.primitives import serialization
+from cryptography import x509  # <-- ADD THIS LINE
+from cryptography.hazmat.backends import default_backend  # <-- ADD THIS LINE
 
 HOST = 'localhost'
 PORT = 65432
@@ -114,6 +119,7 @@ def handle_login_request(data):
         if conn.is_connected():
             cursor.close()
             conn.close()
+
 
 def handle_client(conn, addr):
     """
@@ -319,9 +325,6 @@ def handle_client(conn, addr):
 
             print(f"Session receipt saved to {receipt_path}")
             conn.close()
-
- 
-
 
 def main():
     """Main server loop."""
